@@ -1,0 +1,36 @@
+#############################
+#                           #
+#       tmdb workflow       #
+#                           #
+#############################
+1. get txt file with actorIds
+2. check mysql and filter any person ids that are already obtained
+
+3. for each person not obtained,
+4.  get person info including filmographies from TMDB.
+5.  add this actor to person table.
+6.  add their filmography to the credits table
+
+7. after obtained all person data,
+8.  query credits table and find all movies that have counts greater than 2.  "select * from credits where movie_id in (select movie_id from credits group by movie_id having count(*) > 1 )"
+
+9. with the matched movie list obtained,
+10. query movie table remove any movies we've already obtained.
+
+11. for remaining movie id list,
+12. obtain movie info from TMDB.
+13. add movies to movie table.
+
+
+
+#############################
+#                           #
+#     datafile workflow     #
+#                           #
+#############################
+we want
+    map for <personId, Person>
+    bi_map for <personId, valid movie_ids>
+    map for <movie-id, Movie>
+
+1.
