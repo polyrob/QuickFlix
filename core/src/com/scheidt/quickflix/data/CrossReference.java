@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.scheidt.quickflix.models.GamePayload;
 import com.scheidt.quickflix.models.Movie;
+import com.scheidt.quickflix.models.MovieGamePayload;
 import com.scheidt.quickflix.models.Person;
 
 import java.io.Serializable;
@@ -98,9 +99,12 @@ public class CrossReference implements Serializable {
     public GamePayload getGamePayload(Person p1, int level) {
         /* get one of their movies at random */
         List<Movie> appearances = getMoviesForPerson(p1);
+        Movie nextMovie;
+
         int randMovieIndex = MathUtils.random(0, appearances.size()-1);
-        Movie m = (Movie) appearances.get(randMovieIndex);
-        List<Person> fullCast = getPeopleForMovie(m);
+        nextMovie = (Movie) appearances.get(randMovieIndex);
+
+        List<Person> fullCast = getPeopleForMovie(nextMovie);
         Person p2;
         do {
             int randPersonIndex = MathUtils.random(0, fullCast.size()-1);
@@ -109,8 +113,8 @@ public class CrossReference implements Serializable {
         GamePayload payload = new GamePayload();
         payload.p1 = p1;
         payload.p2 = p2;
-        payload.correct = m;
-        Gdx.app.log("GameLogic", "Shuffle complete. P1: " + p1.getName() + ", Movie: " + m.getTitle() + ", P2:" + p2.getName());
+        payload.correct = nextMovie;
+        Gdx.app.log("GameLogic", "Shuffle complete. P1: " + p1.getName() + ", Movie: " + nextMovie.getTitle() + ", P2:" + p2.getName());
 
 
         /* get two wrong movies */
@@ -160,5 +164,53 @@ public class CrossReference implements Serializable {
 
         } while (cast.contains(p1) || cast.contains(p2));
         return m;
+    }
+
+    public Movie getRandomMovie() {
+        int randMovieIndex = MathUtils.random(0, movieList.size() - 1);
+        return movieList.get(randMovieIndex);
+    }
+
+
+    public MovieGamePayload getMovieGamePayload(Movie firstMovie, int level) {
+        MovieGamePayload mgp = new MovieGamePayload();
+        mgp.setmLeft(firstMovie);
+
+        /* get one of the people from that movie */
+        List<Person> cast = movieLookup.get(firstMovie);
+
+        /* get random cast member */
+        int randCastIndex = MathUtils.random(0, cast.size() - 1);
+        Person targetPerson = cast.get(randCastIndex);
+        mgp.setCorrect(targetPerson);
+        Gdx.app.debug(this.getClass().getName(), "Next correct guess is: " + targetPerson.getName());
+
+        /* get two other people that were NOT in target movie */
+        Person wrong1;
+        int counter = 0;
+        do {
+            if (counter++ > 6) {
+                //something is wrong and we can't find a new person.
+                Gdx.app.error(this.getClass().getName(), "Can't find new match");
+            }
+            int randPersonIndex = MathUtils.random(0, personList.size()-1);
+            wrong1 = personList.get(randCastIndex);
+        } while (cast.contains(wrong1));
+
+        Person wrong2;
+        counter = 0;
+        do {
+            if (counter++ > 6) {
+                //something is wrong and we can't find a new person.
+                Gdx.app.error(this.getClass().getName(), "Can't find new match");
+            }
+            int randPersonIndex = MathUtils.random(0, personList.size()-1);
+            wrong2 = personList.get(randCastIndex);
+        } while (cast.contains(wrong2));
+
+        mgp.setWrong1(wrong1);
+        mgp.setWrong2(wrong2);
+
+        return mgp;
     }
 }

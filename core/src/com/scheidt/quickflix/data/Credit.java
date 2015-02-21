@@ -7,10 +7,12 @@ public class Credit {
 
     private int personId;
     private int movieId;
+    private int rank;
 
-    public Credit(int personId, int movieId) {
+    public Credit(int personId, int movieId, int rank) {
         this.personId = personId;
         this.movieId = movieId;
+        this.rank = rank;
     }
 
 
@@ -21,4 +23,6 @@ public class Credit {
     public int getMovieId() {
         return movieId;
     }
+
+    public int getRank() { return rank; }
 }

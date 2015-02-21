@@ -22,3 +22,4 @@ dependencies {
 }
 
 sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.main.resources.srcDirs = [ "resources/" ]

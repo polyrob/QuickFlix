@@ -17,6 +17,8 @@ import com.scheidt.quickflix.actor.TimerBar;
 import com.scheidt.quickflix.data.Assets;
 import com.scheidt.quickflix.data.CrossReference;
 import com.scheidt.quickflix.models.GamePayload;
+import com.scheidt.quickflix.models.Movie;
+import com.scheidt.quickflix.models.MovieGamePayload;
 import com.scheidt.quickflix.models.Person;
 
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
 /**
  * Created by NewRob on 2/8/2015.
  */
-public class GameScene extends BaseScene {
+public class ByMovieGameScene extends BaseScene {
 
     private static final int PEOPLE_X_LEFT = 100;
     private static final int PEOPLE_X_RIGHT = 1280 - 100 - PersonActor.IMG_WIDTH;
@@ -72,7 +74,7 @@ public class GameScene extends BaseScene {
     private boolean gameover = false;
 
 
-    public GameScene(final QuickFlix game) {
+    public ByMovieGameScene(final QuickFlix game) {
         super(game);
         this.game = game;
         this.crs_ref = game.crs_ref;
@@ -131,25 +133,31 @@ public class GameScene extends BaseScene {
 
     private void startGame() {
         music.play();
-        /* start with random person from list */
-        Person p1 = crs_ref.getRandomPerson();
-        GamePayload payload = crs_ref.getGamePayload(p1, 1);
 
-        //pOut, pLeft, pRight, pNext;;
-        pLeft = new PersonActor(payload.p1);
-        pRight = new PersonActor(payload.p2);
+        /* start with a random movie */
+        Movie firstMovie = crs_ref.getRandomMovie();
 
-//        pLeft.setBounds(PEOPLE_X_LEFT,PEOPLE_Y,PersonActor.IMG_WIDTH,PersonActor.IMG_HEIGHT);
-//        pRight.setBounds(PEOPLE_X_RIGHT,PEOPLE_Y,PersonActor.IMG_WIDTH,PersonActor.IMG_HEIGHT);
-        pLeft.setPosition(PEOPLE_X_LEFT, PEOPLE_Y);
-        pRight.setPosition(PEOPLE_X_RIGHT, PEOPLE_Y);
+        /* get game payload for that movie */
+        MovieGamePayload payload = crs_ref.getMovieGamePayload(firstMovie, level);
 
-        choiceTable = buildChoiceTable(payload);
-        //choiceTable.addAction(moveBy(0, -600, 1, Interpolation.pow2));
 
-        stage.addActor(pLeft);
-        stage.addActor(pRight);
-        stage.addActor(choiceTable);
+//        /* start with random person from list */
+//        Person p1 = crs_ref.getRandomPerson();
+//        GamePayload payload = crs_ref.getGamePayload(p1, 1);
+//
+//        //pOut, pLeft, pRight, pNext;;
+//        pLeft = new PersonActor(payload.p1);
+//        pRight = new PersonActor(payload.p2);
+//
+//        pLeft.setPosition(PEOPLE_X_LEFT, PEOPLE_Y);
+//        pRight.setPosition(PEOPLE_X_RIGHT, PEOPLE_Y);
+//
+//        choiceTable = buildChoiceTable(payload);
+//        //choiceTable.addAction(moveBy(0, -600, 1, Interpolation.pow2));
+//
+//        stage.addActor(pLeft);
+//        stage.addActor(pRight);
+//        stage.addActor(choiceTable);
     }
 
 

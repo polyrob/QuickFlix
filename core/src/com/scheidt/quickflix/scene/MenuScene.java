@@ -141,7 +141,7 @@ public class MenuScene extends BaseScene {
             public void clicked(InputEvent event, float x, float y) {
                 //game.setScreen(new ThrustCopterScene(game));
                 if (music.isPlaying()) music.stop();
-                game.setScreen(new GameScene(game));
+                game.setScreen(new ByPersonGameScene(game));
             }
         });
 

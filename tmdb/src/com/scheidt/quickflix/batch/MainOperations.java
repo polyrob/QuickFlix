@@ -15,8 +15,7 @@ import com.scheidt.quickflix.util.StreamUtil;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
@@ -129,8 +128,8 @@ public class MainOperations {
 
             /* get cast for these movies */
             for (Movie m : movieList) {
-                List<Integer> cast = tmdb.getMovieCast(m.getId());
-                mysql.addCastForMovie(m.getId(), cast);
+                List<Credit> castList = tmdb.getMovieCredits(m.getId());
+                mysql.addCredits(castList);
             }
 
             /* query credits table and find all movies that have counts greater than x */
@@ -139,7 +138,7 @@ public class MainOperations {
             /* get MySQL for people we've already gotten data for */
             List<Integer> dbPeople = mysql.getPersonIds();
 
-            /* query movie table and create new list for only new movies */
+            /* query movie table and create new list for only new people */
             List<Integer> newPersonIds = new ArrayList<Integer>();
             for (Integer id : matchedPeople) {
                 if (!dbPeople.contains(id)) newPersonIds.add(id);
@@ -177,17 +176,24 @@ public class MainOperations {
             personMap.put(p.getId(), p);
         }
 
-
         List<Credit> credits = mysql.getMovieCredits();
+        System.out.println("Number of Total Credits from db: " + credits.size());
+
+        List<Integer> matchedPeople = mysql.getMatchedPeopleCredits();
+        System.out.println("Total matched people credits from db: " + matchedPeople.size());
+
+        List<Integer> matchedMovies = mysql.getMatchedMovieCredits();
+
         for (Credit c : credits) {
-            Person p = personMap.get(c.getPersonId());
-            Movie m = movieMap.get(c.getMovieId());
-            if (p != null && m != null) {
-                crs_ref.addRelationship(p, m);
-            } else {
-                // This is normal for where we have people with unmatched movie credits
+            if (matchedPeople.contains(c.getPersonId()) && matchedMovies.contains(c.getMovieId())) {
+                Person p = personMap.get(c.getPersonId());
+                Movie m = movieMap.get(c.getMovieId());
+                if (p != null && m != null) {
+                    crs_ref.addRelationship(p, m);
+                }
             }
         }
+
         System.out.println("Total people added to cross reference table: " + crs_ref.getPersonMapSize());
         System.out.println("Total movies added to cross reference table: " + crs_ref.getMovieMapSize());
 
@@ -225,9 +231,9 @@ public class MainOperations {
     }
 
 
-
     /**
      * Method to download images that haven't been obtained yet.
+     *
      * @param imgUrl
      */
     private void downloadMovieImages(String imgUrl) {
@@ -262,19 +268,28 @@ public class MainOperations {
     }
 
 
-
     /**
      * Main Program Entry for running TMDB, and MySQL operations.
+     *
      * @param args
      */
     public static void main(String[] args) {
 
-        if (args.length < 4) {
-            System.out.println("Invalid arguments. Must be at least 4:");
-            System.out.println("  [0]: db username");
-            System.out.println("  [1]: db password");
-            System.out.println("  [2]: api key");
-            System.out.print("  [3+]: an operation -");
+        Properties prop = new Properties();
+        InputStream input = null;
+        try {
+            input = new FileInputStream("data/batch.properties");
+            prop.load(input);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+        if (args.length < 1) {
+            System.out.println("Invalid arguments. Need operation(s):");
             for (String s : ARGS) {
                 System.out.print(" " + s);
             }
@@ -282,9 +297,9 @@ public class MainOperations {
         }
 
         MainOperations ops = new MainOperations();
-        ops.init(args[0], args[1], args[2]);
+        ops.init(prop.getProperty("mysql.username"), prop.getProperty("mysql.password"), prop.getProperty("tmdb.apikey"));
 
-        for (int i = 3; i < args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
             if (args[i].equals("PROCESS_PEOPLE")) {
                 try {
                     ops.processPeople();
@@ -335,8 +350,6 @@ public class MainOperations {
 
         System.out.println("Operations completed.");
     }
-
-
 
 
     private void shutdown() {

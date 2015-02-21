@@ -15,6 +15,8 @@ import java.util.logging.Logger;
  */
 public class MySQLManager {
 
+    private static final String MIN_COUNT = "5";
+
     private static final String URL = "jdbc:mysql://localhost:3306/quickflix";
 
     private String user;
@@ -31,11 +33,11 @@ public class MySQLManager {
     private static final String ADD_PERSON_QUERY = "INSERT INTO person (person_id, name, birth_year, popularity, img_path, imdb_id) VALUES ";
     private static final String ADD_CREDITS_QUERY = "INSERT INTO credits (person_id, movie_id) VALUES ";
     private static final String ADD_MOVIES_QUERY = "INSERT INTO movie (movie_id, title, year, status, budget, runtime, popularity, img_path, imdb_id) VALUES ";
-    private static final String MATCHED_MOVIES_QUERY = "SELECT distinct movie_id FROM credits WHERE movie_id in ( SELECT movie_id FROM credits GROUP BY movie_id HAVING count(*) > 2)";
-    private static final String MATCHED_PEOPLE_QUERY = "SELECT distinct person_id FROM credits WHERE person_id in ( SELECT person_id FROM credits GROUP BY person_id HAVING count(*) > 2)";
+    private static final String MATCHED_MOVIES_QUERY = "SELECT distinct movie_id FROM credits WHERE movie_id in ( SELECT movie_id FROM credits GROUP BY movie_id HAVING count(*) > "+MIN_COUNT+")";
+    private static final String MATCHED_PEOPLE_QUERY = "SELECT distinct person_id FROM credits WHERE person_id in ( SELECT person_id FROM credits GROUP BY person_id HAVING count(*) > "+MIN_COUNT+")";
 
     private static final String GET_MOVIES_QUERY = "SELECT movie_id, title, year, status, budget, runtime, popularity, img_path, imdb_id FROM movie";
-    private static final String GET_CREDITS = "SELECT person_id, movie_id FROM credits";
+    private static final String GET_CREDITS = "SELECT person_id, movie_id, rank FROM credits";
     private static final String GET_PEOPLE = "SELECT person_id, name, birth_year, popularity, img_path, imdb_id FROM person";
 
     public MySQLManager(String user, String pwd) {
@@ -124,15 +126,17 @@ public class MySQLManager {
     }
 
 
-    public void addCastForMovie(Integer movieId, List<Integer> castIds) throws SQLException {
+    public void addCredits(List<Credit> castList) throws SQLException {
         StringBuilder sb_credits = new StringBuilder();
         sb_credits.append(ADD_CREDITS_QUERY);
 
-        for (Integer id : castIds) {
+        for (Credit c : castList) {
             sb_credits.append("(");
-            sb_credits.append("'").append(id).append("'");
+            sb_credits.append("'").append(c.getPersonId()).append("'");
             sb_credits.append(",");
-            sb_credits.append("'").append(movieId).append("'");
+            sb_credits.append("'").append(c.getMovieId()).append("'");
+            sb_credits.append(",");
+            sb_credits.append("'").append(c.getRank()).append("'");
             sb_credits.append("),");
         }
         sb_credits.deleteCharAt(sb_credits.length()-1); // remove last comma
@@ -318,7 +322,7 @@ public class MySQLManager {
             rs = st.executeQuery(GET_CREDITS);
 
             while (rs.next()) {
-                Credit c = new Credit(rs.getInt("person_id"), (rs.getInt("movie_id")));
+                Credit c = new Credit(rs.getInt("person_id"), rs.getInt("movie_id"), (rs.getInt("rank")));
                 creditsList.add(c);
             }
 

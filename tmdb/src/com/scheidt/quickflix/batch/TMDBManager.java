@@ -7,6 +7,7 @@ import com.omertron.themoviedbapi.model.MovieDb;
 import com.omertron.themoviedbapi.model.PersonCredit;
 import com.omertron.themoviedbapi.model.PersonType;
 import com.omertron.themoviedbapi.results.TmdbResultsList;
+import com.scheidt.quickflix.data.Credit;
 import com.scheidt.quickflix.models.Movie;
 import com.scheidt.quickflix.models.Person;
 
@@ -36,7 +37,7 @@ public class TMDBManager {
     public List<Person> getPeople(List<Integer> peopleList) throws MovieDbException, IOException {
         if (!isInit) init();
 
-        List<Person> returnList = new ArrayList<Person>() ;
+        List<Person> returnList = new ArrayList<Person>();
 
         System.out.println("Obtaining Person data from TMDB...");
         for (Integer personId : peopleList) {
@@ -103,14 +104,15 @@ public class TMDBManager {
         return returnList;
     }
 
-    public List<Integer> getMovieCast(Integer movieId) throws MovieDbException {
-        List<Integer> cast = new ArrayList<Integer>();
+    public List<Credit> getMovieCredits(Integer movieId) throws MovieDbException {
+        List<Credit> cast = new ArrayList<Credit>();
 
         TmdbResultsList<com.omertron.themoviedbapi.model.Person> tmdbCast = api.getMovieCasts(movieId);
         List<com.omertron.themoviedbapi.model.Person> castList = tmdbCast.getResults();
+        int index = 1;
         for (com.omertron.themoviedbapi.model.Person p : castList) {
             if (p.getPersonType().equals(PersonType.CAST) && !cast.contains(p.getId()))
-                cast.add(p.getId());
+                cast.add(new Credit(p.getId(), movieId, index++));
         }
 
         return cast;
